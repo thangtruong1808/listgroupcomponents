@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 //Stateless Functional
 const Pagination = (props) => {
 	const { itemsCount, pageSize, currentPage, onPageChange } = props;
-	console.log("currentPage: ", currentPage);
+	//console.log("currentPage: ", currentPage);
 	const pagesCount = Math.ceil(itemsCount / pageSize);
 	//console.log(pagesCount);
 	if (pagesCount === 1) {
