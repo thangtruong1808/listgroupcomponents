@@ -24,16 +24,9 @@ class Movies extends Component {
 	}
 	handleGenreSelect = (genre) => {
 		this.setState({ selectedGenre: genre, currentPage: 1 });
-		//console.log("Genre: ", genre);
+		console.log("Genre: ", genre);
 	};
-	handleSort = (path) => {
-		const sortColumn = { ...this.state.sortColumn };
-		if (sortColumn.path === path) {
-			sortColumn.order = sortColumn.order === "asc" ? "desc" : "asc";
-		} else {
-			sortColumn.path = path;
-			sortColumn.order = "asc";
-		}
+	handleSort = (sortColumn) => {
 		this.setState({ sortColumn });
 		//console.log("handleSort: ", path);
 	};
@@ -63,8 +56,7 @@ class Movies extends Component {
 		return classes;
 	}
 
-	render() {
-		const { length: countMovies } = this.state.movies;
+	getPageData = () => {
 		const {
 			pageSize,
 			currentPage,
@@ -72,6 +64,17 @@ class Movies extends Component {
 			selectedGenre,
 			movies: allMovies,
 		} = this.state;
+		const filtered =
+			selectedGenre && selectedGenre._id
+				? allMovies.filter((m) => m.genre._id === selectedGenre._id)
+				: allMovies;
+		const sorted = _.orderBy(filtered, [sortColumn.path], [sortColumn.order]);
+		const movies = paginate(sorted, currentPage, pageSize);
+		return { totalCount: filtered.length, data: movies };
+	};
+	render() {
+		const { length: countMovies } = this.state.movies;
+		const { pageSize, currentPage, sortColumn } = this.state;
 		if (countMovies === 0) {
 			return (
 				<p className={this.getBadgeClasess()}>
@@ -79,12 +82,8 @@ class Movies extends Component {
 				</p>
 			);
 		}
-		const filtered =
-			selectedGenre && selectedGenre._id
-				? allMovies.filter((m) => m.genre._id === selectedGenre._id)
-				: allMovies;
-		const sorted = _.orderBy(filtered, [sortColumn.path], [sortColumn.order]);
-		const movies = paginate(sorted, currentPage, pageSize);
+
+		const { totalCount, data: movies } = this.getPageData();
 		return (
 			<div className="row">
 				<div className="col-3">
@@ -100,16 +99,17 @@ class Movies extends Component {
 				</div>
 				<div className="col">
 					<p className={this.getBadgeClasess()}>
-						Showing {filtered.length} movies in the databse
+						Showing {totalCount} movies in the databse
 					</p>
 					<MoviesTable
 						movies={movies}
+						sortColumn={sortColumn}
 						onLike={this.handleLike}
 						onDelete={this.handleDelete}
 						onSort={this.handleSort}
 					/>
 					<Pagination
-						itemsCount={filtered.length}
+						itemsCount={totalCount}
 						pageSize={pageSize}
 						currentPage={currentPage}
 						onPageChange={this.handlePageChange}
